@@ -1,7 +1,16 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -9,6 +18,8 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -17,6 +28,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { name: "Help Requests", path: "/help-requests" },
     { name: "Rewards", path: "/rewards" },
   ];
+
+  const handleLogout = () => {
+    logout();
+    toast.success("You've been logged out successfully");
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -29,13 +46,43 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <h1 className="text-xl font-bold text-gray-800">ReConnect</h1>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full flex items-center">
-              <span className="mr-1">💰</span>
-              <span className="font-medium">145 ReCoins</span>
-            </div>
-            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">JD</span>
-            </div>
+            {user && (
+              <>
+                <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full flex items-center">
+                  <span className="mr-1">💰</span>
+                  <span className="font-medium">{user.recoins} ReCoins</span>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors">
+                      <span className="text-sm font-medium">{user.avatar || user.name.substring(0, 2)}</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="px-2 py-1.5 text-sm font-medium">
+                      {user.name}
+                    </div>
+                    <div className="px-2 py-1.5 text-xs text-gray-500">
+                      {user.email}
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/" className="cursor-pointer">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/" className="cursor-pointer">Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-600 focus:text-red-600"
+                    >
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
           </div>
         </div>
       </header>
